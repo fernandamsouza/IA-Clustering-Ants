@@ -2,7 +2,9 @@
 
 ## Execução
 
+```
 python Colonia.py
+```
 
 ## Libs necessárias
 
