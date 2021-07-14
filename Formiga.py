@@ -6,24 +6,33 @@ from threading import Thread
 from Dados import Data
 
 class Formiga():
+    
     ''' Função de inicialização dos parâmetros (formiga)'''
     def __init__(self, x, y, raioVisao, grid, its, alpha):
+
+        ######################################################################
         self.grid           = grid
         self.raioVisao      = raioVisao
         self.x              = x
         self.y              = y
         self.interacoes     = its
 
+        ######################################################################
+
         # Calcula quantos dados uma formiga pode ver ao seu redor
         self.raioDados = 1
         for i in range(self.raioVisao):
             self.raioDados = self.raioDados + 2
+
+        ######################################################################
         
         self.carregando       = False  # auxiliar booleano para indicar se a formiga está carregando um dado
         self.data             = None   
         self.c                = self.raioVisao * 10
         self.alpha            = alpha
 
+        ######################################################################
+        
     ''' Gera uma posição randomica com um numero de passos aleatórios.
         Tamanho do passo = aceleração do algoritmo = self.grid.shape[0]'''
     def _posicaoRandomica(self):
@@ -42,7 +51,7 @@ class Formiga():
         if y >= shapeGrid: 
             y = y - shapeGrid
 
-        return x,y
+        return x, y
 
     ''' Dada uma array de duas dimensões, retorna uma array cujo elemento central é array[x,y] -> vizinhos '''
     def _vizinhos(self, array, x, y, n=3):
@@ -52,22 +61,23 @@ class Formiga():
     ''' Apenas pega um dado se a média de similaridade aplicada a sigmoid possui um valor maior que um número aleatório entre 0 e 1 '''
     def _pegar(self):
 
+        ######################################################################
+
         # vizinhosVistos = quantidade de dados na vizinhança
         vizinhosVistos = self._vizinhos(self.grid, self.x, self.y, n = self.raioDados)
-        
         # dados para fórmula
         fi             = self._mediaSimilaridade(vizinhosVistos)
         sig            = ((1 - np.exp(-(self.c * fi))) / (1 + np.exp(-(self.c * fi))))
-
         # f deve variar no intervalo [0,1]
         f              = 1 - sig
+        rd             = np.random.uniform(0.0, 1.0)
 
-        rd   = np.random.uniform(0.0, 1.0)
-
+        ######################################################################
+        
         # caso f seja maior que rd, o dado é carregado
         if (f >= rd):
-            self.carregando = True
-            self.data = self.grid[self.x, self.y]
+            self.carregando           = True
+            self.data                 = self.grid[self.x, self.y]
             self.grid[self.x, self.y] = None
             return True
         return False
@@ -75,12 +85,15 @@ class Formiga():
     ''' Larga o dado se a média de similaridade aplicada a sigmoid possui um valor maior que um número aleatório entre 0 e 1 '''
     def _largar(self):
 
+        ######################################################################
+        
         # vizinhosVistos = quantidade de dados na vizinhança
         vizinhosVistos = self._vizinhos(self.grid, self.x, self.y, n = self.raioDados)
         fi             = self._mediaSimilaridade(vizinhosVistos)
         f              = ((1 - np.exp(-(self.c * fi))) / (1 + np.exp(-(self.c * fi))))
-        
         rd             = np.random.uniform(0.0, 1.0)
+
+        ######################################################################
 
         if (f >= rd):
             self.carregando = False
@@ -93,7 +106,8 @@ class Formiga():
     def run(self):
 
         grid = self.grid
-        x, y = self.x, self.y
+        x    = self.x
+        y    = self.y
 
         if grid[x,y] == None:
             if self.carregando:
@@ -122,8 +136,9 @@ class Formiga():
 
     ''' Calcula a média de similaridade (vizinhança) entre um dado e os outros ao redor da formiga'''
     def _mediaSimilaridade(self, vizinhosVistos):
-        s = 0
-        shape = vizinhosVistos.shape[0]
+        somatorioRetorno = 0
+        shape            = vizinhosVistos.shape[0]
+
         if self.carregando:
             data = self.data.get_atributo()
         else:
@@ -134,14 +149,11 @@ class Formiga():
                 retorno = 0
                 if vizinhosVistos[i,j] != None:
                     retorno = 1 - (euclidean(data, vizinhosVistos[i,j].get_atributo())) / ((self.alpha))
-                    s += retorno
+                    somatorioRetorno += retorno
 
-        fi = s / (self.raioDados**2)
+        fi = somatorioRetorno / (self.raioDados**2)
         
         if fi > 0: 
             return fi
         else: 
             return 0
-
-    def _get_carrying(self):
-        return self.carregando

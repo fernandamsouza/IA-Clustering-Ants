@@ -1,4 +1,5 @@
 class Data():
+    
     def __init__(self, atributo, grupo):
         self.atributo = atributo
         self.grupo = grupo
